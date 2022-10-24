@@ -1,0 +1,223 @@
+#!/bin/sh
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+NC='\033[0m' # No Color
+
+Install()
+{
+  FPGA_TOOL_FOLDER_PATH=$HOME/workspace/tools
+  
+  if [ ! -d "$FPGA_TOOL_FOLDER_PATH" ] ; then
+    mkdir -p $FPGA_TOOL_FOLDER_PATH
+  fi
+  
+  pushd $FPGA_TOOL_FOLDER_PATH > /dev/null
+
+  ### ghdl ###
+  FPGA_TOOL_NAME=ghdl
+  FPGA_TOOL_PATH=$FPGA_TOOL_FOLDER_PATH/$FPGA_TOOL_NAME
+  FPGA_TOOL_REPO=https://github.com/ghdl/ghdl.git
+  FPGA_TOOL_BRANCH=master
+  FPGA_TOOL_BRANCH_HASH=3f068da8527dedae669a96dc861b38abf2f24150
+  if [ ! -d "$FPGA_TOOL_PATH" ] ; then
+    echo "Instalando $FPGA_TOOL_NAME..."
+    git clone $FPGA_TOOL_REPO -b $FPGA_TOOL_BRANCH && pushd $FPGA_TOOL_NAME && \
+    git checkout $FPGA_TOOL_BRANCH_HASH && \
+    mkdir build && cd build && \
+    ../configure --with-llvm-config=/usr/bin/llvm-config-14 && \
+    make && \
+    sudo make install
+    CheckLastReturn
+  fi
+  CheckIfReinstall "BUILD_FOLDER"
+
+  ### iverilog ###
+  FPGA_TOOL_NAME=iverilog
+  FPGA_TOOL_PATH=$FPGA_TOOL_FOLDER_PATH/$FPGA_TOOL_NAME
+  FPGA_TOOL_REPO=https://github.com/steveicarus/iverilog
+  FPGA_TOOL_BRANCH=master
+  FPGA_TOOL_BRANCH_HASH=899d45923381aafa8fe485c4c456e548e90a5864
+  if [ ! -d "$FPGA_TOOL_PATH" ] ; then
+    echo "Instalando $FPGA_TOOL_NAME..."
+    git clone $FPGA_TOOL_REPO -b $FPGA_TOOL_BRANCH && pushd $FPGA_TOOL_NAME && \
+    git checkout $FPGA_TOOL_BRANCH_HASH && \
+    sh autoconf.sh && ./configure && \
+    make && \
+    sudo make install
+    CheckLastReturn
+  fi
+  CheckIfReinstall
+  
+  ### yosys ###
+  FPGA_TOOL_NAME=yosys
+  FPGA_TOOL_PATH=$FPGA_TOOL_FOLDER_PATH/$FPGA_TOOL_NAME
+  FPGA_TOOL_REPO=https://github.com/YosysHQ/yosys
+  FPGA_TOOL_BRANCH=master
+  FPGA_TOOL_BRANCH_HASH=4fcb95ed087263d6e55662a18ceac1722100c7d0
+  if [ ! -d "$FPGA_TOOL_PATH" ] ; then
+    echo "Instalando $FPGA_TOOL_NAME..."
+    git clone $FPGA_TOOL_REPO -b $FPGA_TOOL_BRANCH && pushd $FPGA_TOOL_NAME && \
+    git checkout $FPGA_TOOL_BRANCH_HASH && \
+    make config-clang && \
+    make && \
+    sudo make install
+    CheckLastReturn
+  fi
+  CheckIfReinstall
+  
+  ### ghdl-yosys-plugin ###
+  FPGA_TOOL_NAME=ghdl-yosys-plugin
+  FPGA_TOOL_PATH=$FPGA_TOOL_FOLDER_PATH/$FPGA_TOOL_NAME
+  FPGA_TOOL_REPO=https://github.com/ghdl/ghdl-yosys-plugin
+  FPGA_TOOL_BRANCH=master
+  FPGA_TOOL_BRANCH_HASH=e1989cc467eab4ee7abdde5dde867ab0bc27f8c4
+  if [ ! -d "$FPGA_TOOL_PATH" ] ; then
+    echo "Instalando $FPGA_TOOL_NAME..."
+    git clone $FPGA_TOOL_REPO -b $FPGA_TOOL_BRANCH && pushd $FPGA_TOOL_NAME && \
+    git checkout $FPGA_TOOL_BRANCH_HASH && \
+    make && \
+    sudo make install
+    CheckLastReturn
+  fi
+  CheckIfReinstall
+
+  ### netlistsvg ###
+  FPGA_TOOL_NAME=netlistsvg
+  FPGA_TOOL_PATH=$FPGA_TOOL_FOLDER_PATH/$FPGA_TOOL_NAME
+  FPGA_TOOL_REPO=https://github.com/nturley/netlistsvg
+  FPGA_TOOL_BRANCH=master
+  FPGA_TOOL_BRANCH_HASH=1e187a75babc049db98a33a899b4030bdd7d3f6e
+  if [ ! -d "$FPGA_TOOL_PATH" ] ; then
+    echo "Instalando $FPGA_TOOL_NAME..."
+    git clone $FPGA_TOOL_REPO -b $FPGA_TOOL_BRANCH && pushd $FPGA_TOOL_NAME && \
+    git checkout $FPGA_TOOL_BRANCH_HASH && \
+    npm install --force && \
+    sudo npm install -g .
+    CheckLastReturn
+  fi
+  # Aqui não dá pra usar a função "CheckIfReinstall"
+  if [[ "$REINSTALL_TOOL" == "$FPGA_TOOL_NAME" ]] || \
+     [[ "$REINSTALL_TOOL" == "all" ]]; then
+    pushd $FPGA_TOOL_NAME
+    sudo npm install -g .
+    CheckLastReturn
+  fi
+
+  ### openFPGALoader ###
+  FPGA_TOOL_NAME=openFPGALoader
+  FPGA_TOOL_PATH=$FPGA_TOOL_FOLDER_PATH/$FPGA_TOOL_NAME
+  FPGA_TOOL_REPO=https://github.com/trabucayre/openFPGALoader
+  FPGA_TOOL_BRANCH=master
+  FPGA_TOOL_BRANCH_HASH=08af4a02472283d799cb4bb14395900a139f2b66
+  if [ ! -d "$FPGA_TOOL_PATH" ] ; then
+    echo "Instalando $FPGA_TOOL_NAME..."
+    git clone $FPGA_TOOL_REPO -b $FPGA_TOOL_BRANCH && pushd $FPGA_TOOL_NAME && \
+    git checkout $FPGA_TOOL_BRANCH_HASH && \
+    mkdir build && cd build && \
+    cmake .. && cmake --build . && \
+    sudo make install
+    CheckLastReturn
+  fi
+  CheckIfReinstall "BUILD_FOLDER"
+
+  ### apicula ###
+  FPGA_TOOL_NAME=apicula
+  FPGA_TOOL_PATH=$FPGA_TOOL_FOLDER_PATH/$FPGA_TOOL_NAME
+  FPGA_TOOL_REPO=https://github.com/YosysHQ/apicula
+  FPGA_TOOL_BRANCH=master
+  FPGA_TOOL_BRANCH_HASH=800d2090962ae6266b2fe4bee4f07a7c214e4f13
+  if [ ! -d "$FPGA_TOOL_PATH" ] ; then
+    echo "Instalando $FPGA_TOOL_NAME..."
+    git clone $FPGA_TOOL_REPO -b $FPGA_TOOL_BRANCH && pushd $FPGA_TOOL_NAME && \
+    git checkout $FPGA_TOOL_BRANCH_HASH
+    CheckLastReturn
+  fi
+
+  # O source do apicula é usado pra ver como dar o flash na board
+
+  if ! [[ $(pip3 list | grep -i Apycula) ]]; then
+    echo "Instalando pacote pip3 $FPGA_TOOL_NAME..."
+    pip3 install apycula && \
+    echo -e "\n#pip3 Apycula package\nexport PATH=\"$HOME/.local/bin:$PATH\"" >> ~/.bashrc
+    if [ $? -eq 0 ]; then
+      echo "Instalação bem sucedida!"
+    else
+      echo "Erro na instalação" && popd && exit 1
+    fi
+  fi
+
+  ### nextpnr ###
+  FPGA_TOOL_NAME=nextpnr
+  FPGA_TOOL_PATH=$FPGA_TOOL_FOLDER_PATH/$FPGA_TOOL_NAME
+  FPGA_TOOL_REPO=https://github.com/YosysHQ/nextpnr
+  FPGA_TOOL_BRANCH=master
+  FPGA_TOOL_BRANCH_HASH=376cedd558f6aaf7fa460c4560cb5e45d41f0a62
+  if [ ! -d "$FPGA_TOOL_PATH" ] ; then
+    echo "Instalando $FPGA_TOOL_NAME..."
+    git clone $FPGA_TOOL_REPO -b $FPGA_TOOL_BRANCH && pushd $FPGA_TOOL_NAME && \
+    git checkout $FPGA_TOOL_BRANCH_HASH && \
+    cmake . -DARCH=gowin -DGOWIN_BBA_EXECUTABLE=$HOME/.local/bin/gowin_bba && \
+    make -j$(nproc) && \
+    sudo make install
+    CheckLastReturn
+  fi
+  CheckIfReinstall
+  
+  popd > /dev/null #FPGA_TOOL_FOLDER_PATH
+}
+
+CheckLastReturn()
+{
+  if [ $? -eq 0 ]; then
+    echo -e "${GREEN}Instalação bem sucedida!${NC}" && popd
+  else
+    echo -e "${RED}Erro na instalação${NC}"
+    popd && popd # Contando FPGA_TOOL_FOLDER_PATH
+    exit 1
+  fi
+}
+
+CheckIfReinstall()
+{
+  if [[ "$REINSTALL_TOOL" == "$FPGA_TOOL_NAME" ]] || \
+     [[ "$REINSTALL_TOOL" == "all" ]]; then
+    pushd $FPGA_TOOL_NAME
+    if [[ $1 == "BUILD_FOLDER" ]] ; then
+      cd build
+    fi
+    sudo make install
+    CheckLastReturn
+  fi
+}
+
+Help()
+{
+   # Display Help
+   echo -e "\nSyntax: init-fpga-env [-h|i|r]"
+   echo -e "options:"
+   echo -e "h          Print this help"
+   echo -e "i          Install all the necessary tools"
+   echo -e "r <TOOL>   Reinstall given TOOL. If \"all\" is given reinstalls all."
+   echo -e "           Used in case docker container was removed and run again."
+   echo
+}
+
+# Get the options
+while getopts ":hir:" option; do
+  case $option in
+    h) # display help
+      Help;;
+    i) # install git repos
+      Install;;
+    r) # reinstall binaries and libraries
+      REINSTALL_TOOL=$OPTARG
+      Install;;
+    \?) # Invalid option
+      Help;;
+   esac
+done
+
+exit 0;
