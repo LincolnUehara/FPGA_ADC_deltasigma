@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 
 PACKAGE custom_adc IS
 
-    COMPONENT sigmadelta_box_ave
+    COMPONENT sigmadelta
         GENERIC(
             ADC_WIDTH       : integer := 8;     -- ADC Convertor Bit Precision
             ACCUM_BITS      : integer := 10;    -- 2^ACCUM_BITS is decimation rate of accumulator

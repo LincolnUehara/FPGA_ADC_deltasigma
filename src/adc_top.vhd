@@ -26,7 +26,7 @@ ARCHITECTURE translated OF ADC_top IS
 --	Component Declarations
 --
 --**********************************************************************
-component sigmadelta_box_ave
+component sigmadelta
     GENERIC (
 	    ADC_WIDTH       : integer;
 	    ACCUM_BITS      : integer;
@@ -64,7 +64,7 @@ BEGIN
     clk <= clk_in;
 
 
-SSD_ADC: sigmadelta_box_ave
+SSD_ADC: entity work.sigmadelta(box_ave)
     GENERIC MAP(
     	ADC_WIDTH       => ADC_WIDTH,
     	ACCUM_BITS      => ACCUM_BITS,
