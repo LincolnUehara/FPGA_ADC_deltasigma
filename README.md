@@ -40,10 +40,17 @@ r <TOOL>   Reinstall given TOOL. If "all" is given reinstalls all.
 
 ### Comandos para síntese em GHDL
 
-```
-~$ ghdl -a -fexplicit -fsynopsys custom_adc.vhd custom_adc-body.vhd box_ave.vhd adc_top.vhd adc_tf.vhd
-~$ ghdl -e -fexplicit -fsynopsys ADC_tf
-~$ ghdl -r ADC_tf --vcd=ADC_tf.vcd --stop-time=2173731ns
+```bash
+~/workspace$ cd src
+~/workspace/src$ ghdl -a -fexplicit -fsynopsys \
+                      pkg_adc/custom_adc_filter.vhd \
+                      pkg_adc/custom_adc_filter-body.vhd \
+                      pkg_adc/custom_adc.vhd \
+                      pkg_adc/custom_adc-body.vhd
+~/workspace/src$ ghdl -a -fexplicit -fsynopsys adc_tf.vhd
+~/workspace/src$ ghdl -e -fexplicit -fsynopsys ADC_tf
+~/workspace/src$ ghdl -r ADC_tf --vcd=ADC_tf.vcd --stop-time=2173731ns
+~/workspace/src$ ghdl clean && ghdl remove
 ```
 
 ### Autor
