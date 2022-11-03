@@ -46,7 +46,9 @@ r <TOOL>   Reinstall given TOOL. If "all" is given reinstalls all.
                       pkg_adc/custom_adc_filter.vhd \
                       pkg_adc/custom_adc_filter-body.vhd \
                       pkg_adc/custom_adc.vhd \
-                      pkg_adc/custom_adc-body.vhd
+                      pkg_adc/custom_adc-body.vhd \
+                      pkg_tb/custom_tb.vhd \
+                      pkg_tb/custom_tb-body.vhd
 ~/workspace/src$ ghdl -a -fexplicit -fsynopsys adc_tf.vhd
 ~/workspace/src$ ghdl -e -fexplicit -fsynopsys ADC_tf
 ~/workspace/src$ ghdl -r ADC_tf --vcd=ADC_tf.vcd --stop-time=2173731ns
