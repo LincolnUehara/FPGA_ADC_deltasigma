@@ -11,7 +11,7 @@ Para facilitar a preparação do ambiente, utiliza-se do Docker e um script. A i
 1. Execute no diretório deste repositório os comandos abaixo para construir a imagem e rodar o container pela primeira vez:
 ``` 
 ~$ sudo docker build --build-arg host_uid=$(id -u) --build-arg host_gid=$(id -g) --tag "fpga-env-image" .
-~$ sudo docker run -it --network host -v $PWD:/home/fpga/workspace -v /media:/media -v /dev:/dev --privileged --env="DISPLAY" --name fpga-env fpga-env-image
+~$ sudo docker run -it --network host -v $PWD:/home/fpga/workspace -v /media:/media -v /dev:/dev -v /etc/udev/rules.d:/etc/udev/rules.d --privileged --env="DISPLAY" --name fpga-env fpga-env-image
 ```
 
 2. Nas próximas vezes que for rodar o mesmo container, execute o comando abaixo (senha para usuário 'fpga' é 'fpga'):

@@ -124,6 +124,7 @@ Install()
   CheckIfReinstall "BUILD_FOLDER"
 
   ### apicula ###
+  # O source do apicula é usado pra ver como dar o flash na board
   FPGA_TOOL_NAME=apicula
   FPGA_TOOL_PATH=$FPGA_TOOL_FOLDER_PATH/$FPGA_TOOL_NAME
   FPGA_TOOL_REPO=https://github.com/YosysHQ/apicula
@@ -135,9 +136,7 @@ Install()
     git checkout $FPGA_TOOL_BRANCH_HASH
     CheckLastReturn
   fi
-
-  # O source do apicula é usado pra ver como dar o flash na board
-
+  # A ferramenta é instalada pelo pip3
   if ! [[ $(pip3 list | grep -i Apycula) ]]; then
     echo "Instalando pacote pip3 $FPGA_TOOL_NAME..."
     pip3 install apycula && \
@@ -147,6 +146,8 @@ Install()
     else
       echo "Erro na instalação" && popd && exit 1
     fi
+  else
+    echo -e "${GREEN}Pacote pip3 do $FPGA_TOOL_NAME já instalada!${NC}"
   fi
 
   ### nextpnr ###
@@ -164,7 +165,16 @@ Install()
     sudo make install
     CheckLastReturn
   fi
-  CheckIfReinstall
+  if [[ "$REINSTALL_TOOL" == "$FPGA_TOOL_NAME" ]] || \
+     [[ "$REINSTALL_TOOL" == "all" ]]; then
+     pushd $FPGA_TOOL_NAME
+     cmake . -DARCH=gowin -DGOWIN_BBA_EXECUTABLE=$HOME/.local/bin/gowin_bba && \
+     make -j$(nproc) && \
+     sudo make install
+     CheckLastReturn
+  fi
+
+  CheckUdevRules
   
   popd > /dev/null #FPGA_TOOL_FOLDER_PATH
 }
@@ -172,7 +182,7 @@ Install()
 CheckLastReturn()
 {
   if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Instalação bem sucedida!${NC}" && popd
+    echo -e "${GREEN}Instalação do $FPGA_TOOL_NAME bem sucedida!${NC}" && popd
   else
     echo -e "${RED}Erro na instalação${NC}"
     popd && popd # Contando FPGA_TOOL_FOLDER_PATH
@@ -190,6 +200,18 @@ CheckIfReinstall()
     fi
     sudo make install
     CheckLastReturn
+  fi
+}
+
+CheckUdevRules()
+{
+  if [ ! -e "/etc/udev/rules.d/99-openfpgaloader.rules" ] ; then
+    echo -e "\n${RED}*******ATENÇÃO!!!*******\n"
+    echo -e "Visite o site abaixo para seguir as instruções de como instalar o arquivo \"99-openfpgaloader.rules\" no HOST:"
+    echo -e "https://trabucayre.github.io/openFPGALoader/guide/install.html#udev-rules${NC}\n"
+    popd && exit 1
+  else
+    echo -e "${GREEN}Regra udev localizada!${NC}"
   fi
 }
 
@@ -215,9 +237,17 @@ while getopts ":hir:" option; do
     r) # reinstall binaries and libraries
       REINSTALL_TOOL=$OPTARG
       Install;;
+    :) # -r without value
+      echo -e "${RED}Passe ao menos o nome da ferramenta que quer reinstalar ou \"all\"!${NC}"
+      exit 1;;
     \?) # Invalid option
       Help;;
    esac
 done
+
+# If no single option was passed
+if [[ $1 == "" ]] ; then
+  Help
+fi
 
 exit 0;
