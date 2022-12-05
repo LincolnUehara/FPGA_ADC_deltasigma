@@ -40,19 +40,43 @@ r <TOOL>   Reinstall given TOOL. If "all" is given reinstalls all.
 
 ### Comandos para síntese em GHDL
 
-```bash
+* Primeiramente faça a análise das bibliotecas.
+
+```
 ~/workspace$ cd src
-~/workspace/src$ ghdl -a -fexplicit -fsynopsys \
+~/workspace/src$ ghdl -a -fexplicit -fsynopsys --std=08 \
                       pkg_adc/custom_adc_filter.vhd \
                       pkg_adc/custom_adc_filter-body.vhd \
                       pkg_adc/custom_adc.vhd \
                       pkg_adc/custom_adc-body.vhd \
                       pkg_tb/custom_tb.vhd \
                       pkg_tb/custom_tb-body.vhd
-~/workspace/src$ ghdl -a -fexplicit -fsynopsys adc_tf.vhd
-~/workspace/src$ ghdl -e -fexplicit -fsynopsys ADC_tf
+```
+
+* Para analisar, elaborar e executar ADC_tf (exemplo do Lattice Semiconductor), digite os seguinte comandos:
+
+```
+~/workspace/src$ ghdl -a -fexplicit -fsynopsys --std=08 adc_tf.vhd
+~/workspace/src$ ghdl -e -fexplicit -fsynopsys --std=08 ADC_tf
 ~/workspace/src$ ghdl -r ADC_tf --vcd=ADC_tf.vcd --stop-time=2173731ns
-~/workspace/src$ ghdl clean && ghdl remove
+~/workspace/src$ ghdl clean && ghdl remove && rm *.o *.cf *.vcd
+```
+
+* Para analisar, elaborar e executar csv_tb (testbench que usa arquivo csv), digite os seguinte comandos:
+
+```
+~/workspace/src$ ghdl -a -fexplicit -fsynopsys --std=08 adc_tf_csv.vhd
+~/workspace/src$ ghdl -e -fexplicit -fsynopsys --std=08 csv_tb
+~/workspace/src$ ghdl -r csv_tb
+~/workspace/src$ ghdl clean && ghdl remove && rm *.o *.cf
+```
+
+* Para analisar e elaborar ADC_top (preparação para escrever numa board), digite os seguinte comandos:
+
+```
+~/workspace/src$ ghdl -a -fexplicit -fsynopsys --std=08 adc_top.vhd
+~/workspace/src$ ghdl -e -fexplicit -fsynopsys --std=08 ADC_top
+~/workspace/src$ ghdl clean && ghdl remove && rm *.o *.cf
 ```
 
 ### Autor
