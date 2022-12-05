@@ -2,3 +2,11 @@ tools
 *.o
 *.cf
 *.vcd
+
+src/octave/csv
+*.csv
+
+# Specific files
+adc_tf
+adc_top
+csv_tb
