@@ -59,7 +59,7 @@ r <TOOL>   Reinstall given TOOL. If "all" is given reinstalls all.
 ~/workspace/src$ ghdl -a -fexplicit -fsynopsys --std=08 adc_tf.vhd
 ~/workspace/src$ ghdl -e -fexplicit -fsynopsys --std=08 ADC_tf
 ~/workspace/src$ ghdl -r ADC_tf --vcd=ADC_tf.vcd --stop-time=2173731ns
-~/workspace/src$ ghdl clean && ghdl remove && rm *.o *.cf *.vcd
+~/workspace/src$ ghdl clean && ghdl remove && rm *.o *.cf *.vcd ADC_tf
 ```
 
 * Para analisar, elaborar e executar csv_tb (testbench que usa arquivo csv), digite os seguinte comandos:
@@ -68,7 +68,7 @@ r <TOOL>   Reinstall given TOOL. If "all" is given reinstalls all.
 ~/workspace/src$ ghdl -a -fexplicit -fsynopsys --std=08 adc_tf_csv.vhd
 ~/workspace/src$ ghdl -e -fexplicit -fsynopsys --std=08 csv_tb
 ~/workspace/src$ ghdl -r csv_tb
-~/workspace/src$ ghdl clean && ghdl remove && rm *.o *.cf
+~/workspace/src$ ghdl clean && ghdl remove && rm *.o *.cf csv_tb
 ```
 
 * Para analisar e elaborar ADC_top (preparação para escrever numa board), digite os seguinte comandos:
@@ -76,7 +76,7 @@ r <TOOL>   Reinstall given TOOL. If "all" is given reinstalls all.
 ```
 ~/workspace/src$ ghdl -a -fexplicit -fsynopsys --std=08 adc_top.vhd
 ~/workspace/src$ ghdl -e -fexplicit -fsynopsys --std=08 ADC_top
-~/workspace/src$ ghdl clean && ghdl remove && rm *.o *.cf
+~/workspace/src$ ghdl clean && ghdl remove && rm *.o *.cf ADC_top
 ```
 
 ### Autor
