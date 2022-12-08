@@ -17,17 +17,17 @@ ARCHITECTURE behavioral OF csv_tb IS
 
 COMPONENT sigmadelta
     GENERIC (
-        ADC_WIDTH       : integer;
-        ACCUM_BITS      : integer;
-        LPF_DEPTH_BITS  : integer
+        ADC_WIDTH       : INTEGER;
+        ACCUM_BITS      : INTEGER;
+        LPF_DEPTH_BITS  : INTEGER
     );
     PORT(
-        clk         : IN std_logic;
-        rstn        : IN std_logic;     -- Reset signal
-        analog_cmp  : IN std_logic;	-- from LVDS buffer or external comparitor
-        analog_out  : OUT std_logic;	-- feedback to RC network
-        sample_rdy  : OUT std_logic;
-        digital_out : OUT std_logic_vector(7 downto 0)   -- connected to LED field on control demo bd.
+        clk         : IN STD_LOGIC;
+        rstn        : IN STD_LOGIC;     -- Reset signal
+        analog_cmp  : IN STD_LOGIC;	-- from LVDS buffer or external comparitor
+        analog_out  : OUT STD_LOGIC;	-- feedback to RC network
+        sample_rdy  : OUT STD_LOGIC;
+        digital_out : OUT STD_LOGIC_VECTOR(7 downto 0)   -- connected to LED field on control demo bd.
     );
 END COMPONENT;
 
@@ -47,9 +47,11 @@ SIGNAL digital_out_i : STD_LOGIC_VECTOR(7 downto 0);
 SIGNAL analog_out    : STD_LOGIC;
 SIGNAL sample_rdy    : STD_LOGIC;
 
-CONSTANT DECIMAL_PLACE   : INTEGER := 4;  -- Number of decimal place to be adopted in csv values
-CONSTANT FULL_RANGE_BITS : INTEGER := 16; -- bits for analog resolution (0-65535)
-CONSTANT FULL_RANGE      : INTEGER := 2**FULL_RANGE_BITS;
+CONSTANT DECIMAL_PLACE      : INTEGER := 4;  -- Number of decimal place to be adopted in csv values
+CONSTANT FULL_RANGE_BITS    : INTEGER := 16; -- bits for analog resolution (0-65535)
+CONSTANT FULL_RANGE         : INTEGER := 2**FULL_RANGE_BITS;
+CONSTANT TIME_CONSTANT_BITS : INTEGER := INTEGER(REAL(FULL_RANGE_BITS) * 0.632); -- time-constant response for integrator
+                                                                                 -- 0.632 is value for 1 tau
 
 SIGNAL analog_input : INTEGER := 0;
 SIGNAL integrator   : INTEGER := FULL_RANGE/2;
@@ -101,9 +103,9 @@ BEGIN
   --** Integration and Comparator **
   --********************************
   
-  -- Calculate the integration delta 
-  increase <= INTEGER(REAL(FULL_RANGE - integrator)/REAL(2**(FULL_RANGE_BITS-5)));   -- create a response time-constant
-  decrease <= INTEGER(REAL(integrator)/REAL(2**(FULL_RANGE_BITS-5)));
+  -- Calculate the integration delta
+  increase <= INTEGER(REAL(FULL_RANGE - integrator)/REAL(2 ** TIME_CONSTANT_BITS));   
+  decrease <= INTEGER(REAL(integrator)/REAL(2 ** TIME_CONSTANT_BITS));
 
   -- Integrate the feedback
   integrate: PROCESS
@@ -152,7 +154,7 @@ BEGIN
       
       -- The read value is multiplied by number of desired decimal places
       -- Be careful to not exceed FULL_RANGE_BITS resolution
-      analog_input <= integer(value * (real(10 ** DECIMAL_PLACE)));
+      analog_input <= INTEGER(value * (REAL(10 ** DECIMAL_PLACE)));
       
       IF read_ok = false THEN
         REPORT "Reached end of input file.";
@@ -170,7 +172,7 @@ BEGIN
     FILE     arq_out  : TEXT;
     VARIABLE buf_line : LINE;
     VARIABLE comma    : CHARACTER := ',';
-    VARIABLE value    : real;
+    VARIABLE value    : REAL;
   BEGIN
 
     FILE_OPEN(arq_out, "./octave/csv/output.csv", Write_mode);
@@ -183,7 +185,7 @@ BEGIN
       -- ADC_WIDTH resolution, which is less than the former.
       -- So first multiply by diference between input and output resolution and then 
       -- correct the decimal place.
-      value := real(conv_integer(digital_out) * (2 ** (FULL_RANGE_BITS - ADC_WIDTH))) / real(10 ** DECIMAL_PLACE);
+      value := REAL(conv_integer(digital_out) * (2 ** (FULL_RANGE_BITS - ADC_WIDTH))) / REAL(10 ** DECIMAL_PLACE);
       
       IF NOT final_value THEN
         write(buf_line, to_string(value, "%.4f"));
