@@ -2,6 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+USE ieee.numeric_std.ALL;
 
 ENTITY adc_filter IS
     GENERIC(
@@ -136,16 +137,18 @@ END box_ave;
 
 --*********************************************************************
 --
--- 'Box' Average 2
+-- Sinc3 Filter
 --
 --*********************************************************************
-ARCHITECTURE box_ave_2 OF adc_filter IS
+ARCHITECTURE sinc3 OF adc_filter IS
 
-    constant    ZERO    : std_logic_vector(LPF_DEPTH_BITS-1 downto 0) := (others => '0'); -- to compare count
+    constant    MAX_COUNT   : integer := 10;
+    constant    COEF_DEPTH_BITS    : INTEGER := 6;
 
-    signal accum        : std_logic_vector(ADC_WIDTH+LPF_DEPTH_BITS-1 downto 0); -- accumulator
-    signal count        : std_logic_vector(LPF_DEPTH_BITS-1 downto 0);           -- decimation count
+    signal accum        : std_logic_vector(ADC_WIDTH+COEF_DEPTH_BITS-1 downto 0) := (others => '0'); -- accumulator
+    signal count        : integer := 0;           -- decimation count
     signal raw_data_d1  : std_logic_vector(ADC_WIDTH-1 downto 0);                -- pipeline register
+    signal raw_data_d2  : std_logic_vector(ADC_WIDTH-1 downto 0);                -- pipeline register
 
     signal sample_d1    : std_logic;
     signal sample_d2    : std_logic; -- pipeline registers
@@ -176,7 +179,7 @@ BEGIN
     end process;
 
     accumulate <= sample_d1 and not sample_d2;  -- 'sample' rising_edge detect
-    latch_result <= '1' when ((accumulate = '1') and (count = ZERO)) else '0';  -- latch accum. per decimation count
+    latch_result <= '1' when ((accumulate = '1') and (count = 0)) else '0';  -- latch accum. per decimation count
 
 
     --***********************************************************************
@@ -187,10 +190,14 @@ BEGIN
     PROCESS (clk, rstn)
     begin
         if (rstn ='0') then
-            count <= (others => '0');
+            count <= 0;
         elsif (clk'event and clk='1') then
             if (accumulate = '1') then
-                count <= count + '1';  -- incr. count per each sample
+                if (count = (MAX_COUNT-1)) then
+                    count <= 0;
+                else
+                    count <= count + 1;
+                end if;
             end if;
         end if;
     end process;
@@ -205,13 +212,57 @@ BEGIN
         if (rstn ='0') then
             accum <= (others => '0');
         elsif (clk'event and clk='1') then
+        
             if (accumulate = '1') then
-                if(count = ZERO) then  -- reset accumulator
-                    accum <= (others => '0');          
-                    accum(ADC_WIDTH-1 downto 0) <= raw_data_d1;  -- prime with first value
+                
+                if(count = 0) then
+                
+                    accum <= (others => '0'); -- reset accumulator
+                    accum(ADC_WIDTH-1 downto 0) <= raw_data_d1;
+                    
+                elsif(count = 1) then
+                
+                    accum <= accum + std_logic_vector(to_unsigned(conv_integer(raw_data_d1) * 3, accum'length));
+                    
+                elsif(count = 2) then
+                
+                    accum <= accum + std_logic_vector(to_unsigned(conv_integer(raw_data_d1) * 6, accum'length));
+                    
+                elsif(count = 3) then
+                
+                    accum <= accum + std_logic_vector(to_unsigned(conv_integer(raw_data_d1) * 10, accum'length));
+                    
+                elsif(count = 4) then
+                
+                    accum <= accum + std_logic_vector(to_unsigned(conv_integer(raw_data_d1) * 12, accum'length));
+                    
+                elsif(count = 5) then
+                
+                    accum <= accum + std_logic_vector(to_unsigned(conv_integer(raw_data_d1) * 12, accum'length));
+                    
+                elsif(count = 6) then
+                
+                    accum <= accum + std_logic_vector(to_unsigned(conv_integer(raw_data_d1) * 10, accum'length));
+                    
+                elsif(count = 7) then
+                
+                    accum <= accum + std_logic_vector(to_unsigned(conv_integer(raw_data_d1) * 6, accum'length));
+                    
+                elsif(count = 8) then
+                
+                    accum <= accum + std_logic_vector(to_unsigned(conv_integer(raw_data_d1) * 3, accum'length));
+                    
+                elsif(count = 9) then
+                
+                    accum <= accum + std_logic_vector(to_unsigned(conv_integer(raw_data_d1) * 1, accum'length));
+                    
                 else
-                    accum <= accum + raw_data_d1;  -- accumulate
+                
+                    -- report fail
+                    REPORT "Count = 10";
+                    
                 end if;
+                
             end if;
         end if;
     end process;
@@ -229,7 +280,12 @@ BEGIN
             ave_data_out <= (others => '0');
         elsif (clk'event and clk='1') then
             if (latch_result = '1') then  -- at end of decimation period...
-                ave_data_out <= accum(ADC_WIDTH+LPF_DEPTH_BITS-1 downto LPF_DEPTH_BITS);  -- ... save accumulator/n result
+                
+                ave_data_out <= accum(ADC_WIDTH+COEF_DEPTH_BITS-1 downto COEF_DEPTH_BITS);  -- ... save accumulator/n result
+                
+                -- In case is divided by value different than power of two
+                --ave_data_out(ADC_WIDTH-1 downto 0) <= std_logic_vector(to_unsigned((conv_integer(accum) / 64), ADC_WIDTH));
+                
             end if;
         end if;
     end process;
@@ -239,7 +295,6 @@ BEGIN
     -- output assignments
     --
     --***********************************************************************
-
     data_out_valid <= result_valid;  -- output assignment
 
-END box_ave_2;
+END sinc3;

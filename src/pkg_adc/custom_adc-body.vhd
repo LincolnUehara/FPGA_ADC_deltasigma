@@ -148,12 +148,12 @@ BEGIN
 END box_ave;
 
 
---***********************************************************************
+--******************************************************************
 --
---****************************  box_ave_2 *******************************
+--**************************** sinc3 *******************************
 --
---***********************************************************************
-ARCHITECTURE box_ave_2 OF sigmadelta IS
+--******************************************************************
+ARCHITECTURE sinc3 OF sigmadelta IS
 
     component adc_filter
         GENERIC(
@@ -170,12 +170,13 @@ ARCHITECTURE box_ave_2 OF sigmadelta IS
         );
     end component;
 
-    constant    SATURATED   : std_logic_vector(ACCUM_BITS-1 downto 0) := (others => '1'); -- to compare sigma & counter
+    constant    SATURATED   : std_logic_vector(ACCUM_BITS-1 downto 0) := (others => '1');  -- to compare sigma
+    constant    MAX_COUNT   : integer := 1024;  -- to compare counter
 
     signal      delta       : std_logic;        -- captured comparitor output
     signal      sigma       : std_logic_vector(ACCUM_BITS-1 downto 0); -- running accumulator value
     signal      accum       : std_logic_vector(ADC_WIDTH-1 downto 0);  -- latched accumulator value
-    signal      counter     : std_logic_vector(ACCUM_BITS-1 downto 0); -- decimation counter for accumulator
+    signal      counter     : integer := 0; -- decimation counter for accumulator
     signal      rollover    : std_logic;        -- decimation counter terminal count
     signal      accum_rdy   : std_logic;        -- latched accumulator value 'ready' 
 
@@ -225,12 +226,10 @@ BEGIN
 
     --***********************************************************************
     --
-    -- Box filter Average
-    --
-    -- Acts as simple decimating Low-Pass Filter
+    -- Sinc3 filter
     --
     --***********************************************************************
-    BA_INST: entity work.adc_filter(box_ave_2)
+    BA_INST: entity work.adc_filter(sinc3)
         GENERIC MAP(
             ADC_WIDTH       => ADC_WIDTH,
             LPF_DEPTH_BITS  => LPF_DEPTH_BITS
@@ -252,12 +251,13 @@ BEGIN
     PROCESS (clk, rstn)
     begin
         if (rstn ='0') then
-            counter    <= (others => '0');
+            counter    <= 0;
             rollover   <= '0';
         elsif (clk'event and clk='1') then
-            counter <= counter + '1'; -- running count
-            if (counter = SATURATED) then
+            counter <= counter + 1; -- running count
+            if (counter = MAX_COUNT) then
                 rollover <= '1'; -- assert 'rollover' when counter is all 1's
+                counter  <= 0;
             else
                 rollover <= '0';
             end if;
@@ -272,4 +272,4 @@ BEGIN
 
     analog_out <= delta;            -- feedback to comparitor LPF
 
-END box_ave_2;
+END sinc3;
