@@ -29,6 +29,9 @@ RUN apt-get -y install python3-pip
 # Used for nextpnr
 RUN apt-get -y install libboost-all-dev libeigen3-dev
 
+# Octave related packages
+RUN apt-get -y install octave liboctave-dev
+
 # By default, Ubuntu uses dash as an alias for sh. Dash does not support the source command
 # needed for setting up the build environment in CMD. Use bash as an alias for sh.
 RUN rm /bin/sh && ln -s bash /bin/sh
