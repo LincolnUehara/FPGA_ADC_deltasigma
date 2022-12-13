@@ -38,6 +38,25 @@ r <TOOL>   Reinstall given TOOL. If "all" is given reinstalls all.
 ~/workspace$
 ```
 
+### Comandos Octave
+
+* Primeiramente instale as dependências do Octave:
+
+```
+~/workspace/src$ cd octave
+~/workspace/src/octave$ octave pkg_install.m # Irá demorar um pouco
+```
+
+* Gere o arquivo *input.csv*:
+```
+~/workspace/src/octave$ octave gen_XXXX.m
+```
+
+* Para comparar o *input.csv* com *output.csv* (este gerado na execução do testbench como descrito no item seguinte), execute o comando:
+```
+~/workspace/src/octave$ octave --persist comp_waves.m # Ctrl-D para sair
+```
+
 ### Comandos para síntese em GHDL
 
 * Primeiramente faça a análise das bibliotecas.
